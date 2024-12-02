@@ -76,6 +76,10 @@ if uploaded_files:
             combined_data["DT"] = new_column_text
             combined_data["Tipo de Contenedor"] = container_type
             combined_data["Contenedor"] = container
+            combined_data["Pallet"] = 'P1'
+            combined_data["Bulto"] = 'B1'
+            combined_data["Cajon"] = 'C1'
+
 
             # Mostrar tabla con las nuevas columnas
             st.subheader("Tabla Combinada con Nuevas Columnas")
