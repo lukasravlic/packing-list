@@ -39,13 +39,20 @@ if uploaded_files:
             # Procesar cada archivo cargado
             df = tratamiento_maruti.procesar_factura(uploaded_file)
             df = df.drop(index=0)
-            data_frames.append(df)
 
-            # Mostrar vista previa
+            # Filtrar filas no deseadas
+            df = df[
+                ~df["NRO_ORDEN_PREFIJO"].str.contains("CHLORDER|ITEM CODE", na=False)
+            ]
+
+            data_frames.append(df)
             st.write(f"Archivo procesado: **{uploaded_file.name}**")
             st.dataframe(df)
+
         except Exception as e:
             st.error(f"Error al procesar el archivo {uploaded_file.name}: {e}")
+            import traceback
+            st.error(traceback.format_exc())  # Muestra el stack trace completo para depuración
 
     # Combinar todos los DataFrames procesados
     if data_frames:
