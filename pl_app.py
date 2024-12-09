@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO  # Para crear archivos en memoria
+from modulos import tratamiento_maruti  # Modulo que contiene la función `procesar_factura`
 
 # Configuración de la página
 st.set_page_config(
@@ -23,11 +24,11 @@ st.title("Packing List - Maruti Suzuki")
 st.markdown("---")
 
 # Subir y procesar archivos
-st.subheader("Suba sus archivos Excel")
+st.subheader("Suba sus archivos Word")
 
 uploaded_files = st.file_uploader(
-    "Cargue archivos Excel (.xlsx)",
-    type="xlsx",
+    "Cargue archivos Word (.docx)",
+    type="docx",
     accept_multiple_files=True
 )
 
@@ -35,26 +36,21 @@ if uploaded_files:
     data_frames = []
     for uploaded_file in uploaded_files:
         try:
-            # Leer cada archivo Excel con header=1
-            df = pd.read_excel(uploaded_file, engine="openpyxl", header=1)
-
-            # Eliminar la primera fila después del header
-            df = df.iloc[1:, :]  # Esto elimina la fila en el índice 0
-
+            # Procesar cada archivo cargado
+            df = tratamiento_maruti.procesar_factura(uploaded_file)
+            df = df.drop(index=0)
             data_frames.append(df)
 
             # Mostrar vista previa
-            st.write(f"Archivo cargado: **{uploaded_file.name}**:")
+            st.write(f"Archivo procesado: **{uploaded_file.name}**")
+            st.dataframe(df)
         except Exception as e:
-            st.error(f"Error al leer el archivo {uploaded_file.name}: {e}")
+            st.error(f"Error al procesar el archivo {uploaded_file.name}: {e}")
 
-    # Combinar todos los archivos cargados
+    # Combinar todos los DataFrames procesados
     if data_frames:
         combined_data = pd.concat(data_frames, ignore_index=True)
-        st.success("Archivos combinados exitosamente.")
-
-        combined_data = combined_data[
-            ['Cod. Material de Proveedor despachado', 'Cantidad solicitada', 'Nro. De Orden – Prefijo']]
+        st.success("Archivos procesados y combinados exitosamente.")
 
         # Inputs para agregar nuevas columnas
         st.subheader("Ingrese datos para agregar nuevas columnas")
@@ -80,7 +76,6 @@ if uploaded_files:
             combined_data["Bulto"] = 'B1'
             combined_data["Cajon"] = 'C1'
 
-
             # Mostrar tabla con las nuevas columnas
             st.subheader("Tabla Combinada con Nuevas Columnas")
             st.dataframe(combined_data)
@@ -99,4 +94,5 @@ if uploaded_files:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 else:
-    st.warning("Por favor, suba uno o más archivos Excel para continuar.")
+    st.warning("Por favor, suba uno o más archivos Word para continuar.")
+
