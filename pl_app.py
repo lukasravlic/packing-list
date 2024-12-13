@@ -46,15 +46,12 @@ if uploaded_files:
             # Mostrar vista previa
             st.write(f"Archivo cargado: **{uploaded_file.name}**:")
         except Exception as e:
-            st.error(f"Error al leer el archivo {uploaded_file.name}: {e}")
+            st.error(f"Error al leer el archivo {uploaded_file.name}: {e}")#estra el stack trace completo para depuración
 
-    # Combinar todos los archivos cargados
+    # Combinar todos los DataFrames procesados
     if data_frames:
         combined_data = pd.concat(data_frames, ignore_index=True)
-        st.success("Archivos combinados exitosamente.")
-
-        combined_data = combined_data[
-            ['Cod. Material de Proveedor despachado', 'Cantidad solicitada', 'Nro. De Orden – Prefijo']]
+        st.success("Archivos procesados y combinados exitosamente.")
 
         # Inputs para agregar nuevas columnas
         st.subheader("Ingrese datos para agregar nuevas columnas")
@@ -65,7 +62,7 @@ if uploaded_files:
         # Dropdown para "Tipo de Contenedor"
         container_type = st.selectbox(
             "Seleccione el tipo de contenedor",
-            options=["40HC", "4'STD", "Tipo 3", "Tipo 4"]
+            options=["40HC", "20STD", "20DRY", "40DRY"]
         )
 
         # Campo de texto para "Contenedor"
@@ -81,15 +78,22 @@ if uploaded_files:
             combined_data["Cajon"] = 'C1'
 
 
+           
             # Mostrar tabla con las nuevas columnas
             st.subheader("Tabla Combinada con Nuevas Columnas")
+            
+            combined_data = combined_data[['DT','Tipo de Contenedor','Contenedor','Pallet','Bulto','Cajon', 'Cod. Material de Proveedor despachado','Cantidad Facturada', 'Unidad de Medida facturada', 'Nro. De Orden – Prefijo']]
+            
             st.dataframe(combined_data)
 
+            
+           
             # Crear un archivo Excel en memoria
             output = BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 combined_data.to_excel(writer, index=False, sheet_name="Datos Combinados")
             excel_data = output.getvalue()
+
 
             # Botón para descargar el archivo Excel
             st.download_button(
@@ -100,3 +104,6 @@ if uploaded_files:
             )
 else:
     st.warning("Por favor, suba uno o más archivos Excel para continuar.")
+
+
+###fin###
