@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO  # Para crear archivos en memoria
-from modulos import tratamiento_maruti  # Modulo que contiene la función `procesar_factura`
 
 # Configuración de la página
 st.set_page_config(
@@ -24,11 +23,11 @@ st.title("Packing List - Maruti Suzuki")
 st.markdown("---")
 
 # Subir y procesar archivos
-st.subheader("Suba sus archivos Word")
+st.subheader("Suba sus archivos Excel")
 
 uploaded_files = st.file_uploader(
-    "Cargue archivos Word (.docx)",
-    type="docx",
+    "Cargue archivos Excel (.xlsx)",
+    type="xlsx",
     accept_multiple_files=True
 )
 
@@ -36,23 +35,18 @@ if uploaded_files:
     data_frames = []
     for uploaded_file in uploaded_files:
         try:
-            # Procesar cada archivo cargado
-            df = tratamiento_maruti.procesar_factura(uploaded_file)
-            df = df.drop(index=0)
+            # Leer cada archivo Excel con header=1
+            df = pd.read_excel(uploaded_file, engine="openpyxl", header=1)
 
-            # Filtrar filas no deseadas
-            df = df[
-                ~df["NRO_ORDEN_PREFIJO"].str.contains("CHLORDER|ITEM CODE", na=False)
-            ]
+            # Eliminar la primera fila después del header
+            df = df.iloc[1:, :]  # Esto elimina la fila en el índice 0
 
             data_frames.append(df)
-            st.write(f"Archivo procesado: **{uploaded_file.name}**")
-            st.dataframe(df)
 
+            # Mostrar vista previa
+            st.write(f"Archivo cargado: **{uploaded_file.name}**:")
         except Exception as e:
-            st.error(f"Error al procesar el archivo {uploaded_file.name}: {e}")
-            import traceback
-            st.error(traceback.format_exc())  # Muestra el stack trace completo para depuración
+            st.error(f"Error al leer el archivo {uploaded_file.name}: {e}")#estra el stack trace completo para depuración
 
     # Combinar todos los DataFrames procesados
     if data_frames:
@@ -68,7 +62,7 @@ if uploaded_files:
         # Dropdown para "Tipo de Contenedor"
         container_type = st.selectbox(
             "Seleccione el tipo de contenedor",
-            options=["40HC", "4'STD", "Tipo 3", "Tipo 4"]
+            options=["40HC", "20STD", "20DRY", "40DRY"]
         )
 
         # Campo de texto para "Contenedor"
@@ -83,15 +77,23 @@ if uploaded_files:
             combined_data["Bulto"] = 'B1'
             combined_data["Cajon"] = 'C1'
 
+
+           
             # Mostrar tabla con las nuevas columnas
             st.subheader("Tabla Combinada con Nuevas Columnas")
+            
+            combined_data = combined_data[['DT','Tipo de Contenedor','Contenedor','Pallet','Bulto','Cajon', 'Cod. Material de Proveedor despachado','Cantidad Facturada', 'Unidad de Medida facturada', 'Nro. De Orden – Prefijo']]
+            
             st.dataframe(combined_data)
 
+            
+           
             # Crear un archivo Excel en memoria
             output = BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 combined_data.to_excel(writer, index=False, sheet_name="Datos Combinados")
             excel_data = output.getvalue()
+
 
             # Botón para descargar el archivo Excel
             st.download_button(
@@ -101,5 +103,7 @@ if uploaded_files:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 else:
-    st.warning("Por favor, suba uno o más archivos Word para continuar.")
+    st.warning("Por favor, suba uno o más archivos Excel para continuar.")
+
+
 
