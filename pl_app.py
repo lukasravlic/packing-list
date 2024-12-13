@@ -105,5 +105,3 @@ if uploaded_files:
 else:
     st.warning("Por favor, suba uno o más archivos Excel para continuar.")
 
-
-
