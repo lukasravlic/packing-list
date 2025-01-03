@@ -36,7 +36,7 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         try:
             # Leer cada archivo Excel con header=1
-            df = pd.read_excel(uploaded_file, engine="openpyxl", header=1)
+            df = pd.read_excel(uploaded_file, engine="openpyxl", header=0)
 
             # Eliminar la primera fila después del header
             df = df.iloc[1:, :]  # Esto elimina la fila en el índice 0
@@ -78,12 +78,29 @@ if uploaded_files:
             combined_data["Cajon"] = 'C1'
 
 
+            #combined_data = combined_data[['DT','Tipo de Contenedor','Contenedor','Pallet','Bulto','Cajon', 'Cod. Material de Proveedor despachado','Cantidad Facturada', 'Unidad de Medida facturada', 'Nro. De Orden – Prefijo']]
            
             # Mostrar tabla con las nuevas columnas
             st.subheader("Tabla Combinada con Nuevas Columnas")
+            desired_order = ['DT', 'Tipo de Contenedor', 'Contenedor', 'Pallet', 
+                 'Bulto', 'Cajon', 'MATERIAL_PROV_DESPACHADO','QTY_FACTURADA','UNIDAD_MEDIDA_FACTURADA','NRO_ORDEN_PREFIJO']
+
+
+
+#'Cod. Material de Proveedor despachado', 'Cantidad Facturada', 'Unidad de Medida facturada', 'Nro. De Orden – Prefijo'
+# Reorder columns
+            combined_data = combined_data.reindex(columns=desired_order)
             
-            combined_data = combined_data[['DT','Tipo de Contenedor','Contenedor','Pallet','Bulto','Cajon', 'Cod. Material de Proveedor despachado','Cantidad Facturada', 'Unidad de Medida facturada', 'Nro. De Orden – Prefijo']]
-            
+            rename_mapping = {
+                'MATERIAL_PROV_DESPACHADO': 'Cod. Material de Proveedor despachado',
+                'QTY_FACTURADA': 'Cantidad Facturada',
+                'UNIDAD_MEDIDA_FACTURADA': 'Unidad de Medida facturada',
+                'NRO_ORDEN_PREFIJO': 'Nro. De Orden – Prefijo'
+            }
+
+            # Rename the columns
+            combined_data.rename(columns=rename_mapping, inplace=True)
+
             st.dataframe(combined_data)
 
             
